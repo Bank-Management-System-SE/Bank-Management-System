@@ -1,0 +1,7 @@
+bms
+test_runner
+testdata/
+data/*.dat
+data/*.tmp
+data/*.log
+*.o
