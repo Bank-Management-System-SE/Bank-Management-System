@@ -25,3 +25,6 @@ make test       # build and run unit tests (AddressSanitizer + UBSan enabled)
 - Sprint 2: update details, transfer, transaction history, administrator login/search/deactivate, remaining security requirements, timing run.
 
 Requirement IDs follow the approved SRS. See `docs/TRACEABILITY.md` and `DEVIATIONS.md`.
+
+
+Testing Jira GitHub integration - BNK-1
