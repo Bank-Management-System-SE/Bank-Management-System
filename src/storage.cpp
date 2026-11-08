@@ -8,7 +8,8 @@
 
 namespace fs = std::filesystem;
 static std::string g_dir = "data";
-static long g_txn = -1;                       // last used transaction number (lazy-loaded)
+static long g_txn = -1;
+static bool g_failNextSave = false;                       // last used transaction number (lazy-loaded)
 
 void setDataDir(const std::string& dir) { g_dir = dir; g_txn = -1; }
 std::string dataPath(const std::string& file) { return g_dir + "/" + file; }
@@ -37,7 +38,10 @@ bool loadAccounts(std::vector<Account>& out) {
     return true;
 }
 
+void testFailNextSave() { g_failNextSave = true; }
+
 bool saveAccounts(const std::vector<Account>& in) {
+    if (g_failNextSave) { g_failNextSave = false; return false; }
     std::error_code ec;
     fs::create_directories(g_dir, ec);
     std::string tmp = dataPath("accounts.tmp");
