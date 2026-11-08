@@ -1,7 +1,14 @@
-bms
-test_runner
+/bms
+/test_*
+*.exe
 testdata/
 data/*.dat
 data/*.tmp
 data/*.log
 *.o
+*.gcda
+*.gcno
+*.gcov
+test_runner
+*.dSYM
+.DS_Store
