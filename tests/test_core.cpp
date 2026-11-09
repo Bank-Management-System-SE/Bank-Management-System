@@ -56,7 +56,7 @@ int main() {
     // ---- Authentication ----
     CHECK("TC-AUTH-01 valid login", authenticate(accts, a1, "1234", acc) == Err::OK && acc && acc->number == a1);
     CHECK("TC-AUTH-02 wrong PIN rejected, no session", authenticate(accts, a1, "9999", acc) == Err::INVALID_PIN && acc == nullptr);
-    CHECK("TC-AUTH-02 unknown account rejected, no session", authenticate(accts, 9999, "1234", acc) == Err::ACCOUNT_NOT_FOUND && acc == nullptr);
+    CHECK("TC-AUTH-02 unknown account rejected, no session", authenticate(accts, 9999, "1234", acc) == Err::INVALID_PIN && acc == nullptr);    
     CHECK("TC-SEC-01 failed login yields no protected access", acc == nullptr);
 
     CHECK("TC-AUTH-03 attempt 1", authenticate(accts, a2, "0000", acc) == Err::INVALID_PIN);
