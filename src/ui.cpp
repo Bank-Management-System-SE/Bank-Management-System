@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include "history.h"
 #ifdef _WIN32
 #include <conio.h>
 #else
@@ -71,12 +72,22 @@ static void createFlow(std::vector<Account>& accts) {
     std::cout << "  Account created. Your account number is " << accNo << "\n";
 }
 
+static void historyFlow(int accNo) {                                     // BMS-F-020
+    std::vector<LedgerEntry> h = getHistory(accNo);
+    if (h.empty()) { std::cout << "  No transactions yet.\n"; return; }
+    std::cout << "  " << std::left << std::setw(9) << "ID" << std::setw(21) << "Date/Time" << std::setw(22) << "Type"
+              << std::right << std::setw(12) << "Amount" << std::setw(14) << "Balance" << "\n";
+    for (const auto& e : h)
+        std::cout << "  " << std::left << std::setw(9) << e.txnId << std::setw(21) << e.dateTime << std::setw(22) << e.type
+                  << std::right << std::fixed << std::setprecision(2) << std::setw(12) << e.amount << std::setw(14) << e.balanceAfter << "\n";
+}
+
 static void accountMenu(std::vector<Account>& accts, Account* acc) {
     int accNo = acc->number;
     std::cout << "\nWelcome, " << acc->name << "\n";
     std::string choice, amt;
     while (true) {
-        std::cout << "\n--- Account " << accNo << " ---\n1. Deposit\n2. Withdraw\n3. View account details and balance\n4. Logout\n";
+        std::cout << "\n--- Account " << accNo << " ---\n1. Deposit\n2. Withdraw\n3. View account details and balance\n4. Transaction history\n5. Logout\n";
         if (!readLine("Choice: ", choice)) return;
         if (choice == "1" || choice == "2") {
             if (!readLine("Amount: ", amt)) return;
@@ -93,9 +104,10 @@ static void accountMenu(std::vector<Account>& accts, Account* acc) {
                       << "\n  Contact        : " << acc->contact << "\n  Status         : "
                       << (acc->active ? "Active" : "Inactive") << "\n  Current balance: " << std::fixed
                       << std::setprecision(2) << r.newBalance << "\n";
-        } else if (choice == "4") { std::cout << "  Logged out.\n"; return; }
-        else std::cout << "  [!] Enter 1-4\n";
-    }
+        } else if (choice == "4") historyFlow(accNo);
+        else if (choice == "5") { std::cout << "  Logged out.\n"; return; }
+        else std::cout << "  [!] Enter 1-5\n";
+        }
 }
 
 static void loginFlow(std::vector<Account>& accts) {
