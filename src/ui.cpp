@@ -1,12 +1,14 @@
 #include "ui.h"
 #include "account.h"
+#include "admin.h"
 #include "auth.h"
+#include "history.h"
 #include "transaction.h"
+#include "transfer.h"
 #include "validate.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include "history.h"
 #ifdef _WIN32
 #include <conio.h>
 #else
@@ -23,8 +25,7 @@ static bool readLine(const std::string& prompt, std::string& out) {
 
 static void showErr(Err e) { std::cout << "  [!] " << errMsg(e) << "\n"; }
 
-// Masked PIN entry (test plan 5.1: PIN never echoed where masking is supported).
-// Falls back to plain input when stdin is not a terminal (piped/scripted runs).
+// Masked PIN/password entry (BMS-SR-002). Falls back to plain input when stdin is not a terminal.
 static bool readPin(const std::string& prompt, std::string& out) {
     std::cout << prompt << std::flush;
 #ifdef _WIN32
@@ -55,6 +56,18 @@ static bool readPin(const std::string& prompt, std::string& out) {
 #endif
 }
 
+static bool confirm(const std::string& question) {
+    std::string a;
+    if (!readLine(question + " (y/n): ", a)) return false;
+    return a == "y" || a == "Y";
+}
+
+static void printAccount(const Account& a) {
+    std::cout << "  Account number : " << a.number << "\n  Name           : " << a.name
+              << "\n  Contact        : " << a.contact << "\n  Status         : " << (a.active ? "Active" : "Inactive")
+              << "\n  Current balance: " << std::fixed << std::setprecision(2) << a.balance << "\n";
+}
+
 static void createFlow(std::vector<Account>& accts) {
     std::string name, contact, pin, amt;
     if (!readLine("Full name: ", name)) return;
@@ -82,12 +95,39 @@ static void historyFlow(int accNo) {                                     // BMS-
                   << std::right << std::fixed << std::setprecision(2) << std::setw(12) << e.amount << std::setw(14) << e.balanceAfter << "\n";
 }
 
+static void updateFlow(std::vector<Account>& accts, Account* acc) {      // BMS-F-008
+    std::string name, contact;
+    std::cout << "  Leave blank to keep the current value.\n";
+    if (!readLine("New name [" + acc->name + "]: ", name)) return;
+    if (!readLine("New contact [" + acc->contact + "]: ", contact)) return;
+    if (name.empty()) name = acc->name;
+    if (contact.empty()) contact = acc->contact;
+    Err e = updateDetails(accts, acc->number, name, contact);
+    if (e != Err::OK) { showErr(e); return; }
+    std::cout << "  Details updated.\n";
+}
+
+static void transferFlow(std::vector<Account>& accts, int accNo) {       // BMS-F-016 .. F-019
+    std::string toStr, amt;
+    if (!readLine("Destination account number: ", toStr)) return;
+    int to;
+    if (!parseInt(toStr, to)) { std::cout << "  [!] Account number must be numeric\n"; return; }
+    if (!readLine("Amount: ", amt)) return;
+    double d;
+    if (!parseAmount(amt, d)) { showErr(Err::INVALID_AMOUNT); return; }
+    if (!confirm("Transfer " + amt + " to account " + toStr + "?")) { std::cout << "  Cancelled.\n"; return; }
+    TxnResult r = transfer(accts, accNo, to, d);
+    if (r.status != Err::OK) { showErr(r.status); return; }
+    std::cout << "  Transferred. New balance: " << std::fixed << std::setprecision(2) << r.newBalance << "\n";
+}
+
 static void accountMenu(std::vector<Account>& accts, Account* acc) {
     int accNo = acc->number;
     std::cout << "\nWelcome, " << acc->name << "\n";
     std::string choice, amt;
     while (true) {
-        std::cout << "\n--- Account " << accNo << " ---\n1. Deposit\n2. Withdraw\n3. View account details and balance\n4. Transaction history\n5. Logout\n";
+        std::cout << "\n--- Account " << accNo << " ---\n1. Deposit\n2. Withdraw\n3. View account details and balance\n"
+                     "4. Transaction history\n5. Update details\n6. Transfer funds\n7. Logout\n";
         if (!readLine("Choice: ", choice)) return;
         if (choice == "1" || choice == "2") {
             if (!readLine("Amount: ", amt)) return;
@@ -99,15 +139,13 @@ static void accountMenu(std::vector<Account>& accts, Account* acc) {
                            << std::setprecision(2) << d << ". New balance: " << r.newBalance << "\n";
         } else if (choice == "3") {
             TxnResult r = balanceInquiry(accts, accNo);
-            if (r.status != Err::OK) { showErr(r.status); continue; }
-            std::cout << "  Account number : " << acc->number << "\n  Name           : " << acc->name
-                      << "\n  Contact        : " << acc->contact << "\n  Status         : "
-                      << (acc->active ? "Active" : "Inactive") << "\n  Current balance: " << std::fixed
-                      << std::setprecision(2) << r.newBalance << "\n";
+            if (r.status != Err::OK) showErr(r.status); else printAccount(*acc);
         } else if (choice == "4") historyFlow(accNo);
-        else if (choice == "5") { std::cout << "  Logged out.\n"; return; }
-        else std::cout << "  [!] Enter 1-5\n";
-        }
+        else if (choice == "5") updateFlow(accts, acc);
+        else if (choice == "6") transferFlow(accts, accNo);
+        else if (choice == "7") { std::cout << "  Logged out.\n"; return; }
+        else std::cout << "  [!] Enter 1-7\n";
+    }
 }
 
 static void loginFlow(std::vector<Account>& accts) {
@@ -119,21 +157,53 @@ static void loginFlow(std::vector<Account>& accts) {
     Account* acc = nullptr;
     Err e = authenticate(accts, accNo, pin, acc);
     if (e == Err::ACCOUNT_NOT_FOUND || e == Err::INVALID_PIN) {
-        std::cout << "  [!] Invalid account number or PIN\n";   // same message for both
+        std::cout << "  [!] Invalid account number or PIN\n";            // same message for both (BMS-F-002)
         return;
     }
     if (e != Err::OK) { showErr(e); return; }
     accountMenu(accts, acc);
 }
 
+static void adminMenu(std::vector<Account>& accts) {
+    std::string choice, numStr;
+    while (true) {
+        std::cout << "\n--- Administrator ---\n1. Search account\n2. Deactivate account\n3. Logout\n";
+        if (!readLine("Choice: ", choice)) return;
+        if (choice == "1" || choice == "2") {
+            if (!readLine("Account number: ", numStr)) return;
+            int n;
+            if (!parseInt(numStr, n)) { std::cout << "  [!] Account number must be numeric\n"; continue; }
+            if (choice == "1") {                                            // BMS-F-021
+                Account* a = searchAccount(accts, n);
+                if (!a) showErr(Err::ACCOUNT_NOT_FOUND); else printAccount(*a);
+            } else {                                                        // BMS-F-022
+                if (!searchAccount(accts, n)) { showErr(Err::ACCOUNT_NOT_FOUND); continue; }
+                if (!confirm("Deactivate account " + numStr + "?")) { std::cout << "  Cancelled.\n"; continue; }
+                Err e = deactivateAccount(accts, n);
+                if (e != Err::OK) showErr(e); else std::cout << "  Account deactivated.\n";
+            }
+        } else if (choice == "3") { std::cout << "  Logged out.\n"; return; }
+        else std::cout << "  [!] Enter 1-3\n";
+    }
+}
+
+static void adminLoginFlow(std::vector<Account>& accts) {                  // BMS-F-004
+    std::string user, pw;
+    if (!readLine("Administrator user: ", user)) return;
+    if (!readPin("Password: ", pw)) return;
+    if (!adminLogin(user, pw)) { std::cout << "  [!] Invalid administrator credentials\n"; return; }
+    adminMenu(accts);
+}
+
 void runApp(std::vector<Account>& accts) {
     std::string choice;
     while (true) {
-        std::cout << "\n=== Bank Management System ===\n1. Create account\n2. Login\n3. Exit\n";
+        std::cout << "\n=== Bank Management System ===\n1. Create account\n2. Customer login\n3. Administrator login\n4. Exit\n";
         if (!readLine("Choice: ", choice)) return;
         if (choice == "1") createFlow(accts);
         else if (choice == "2") loginFlow(accts);
-        else if (choice == "3") { std::cout << "Goodbye.\n"; return; }
-        else std::cout << "  [!] Enter 1-3\n";
+        else if (choice == "3") adminLoginFlow(accts);
+        else if (choice == "4") { std::cout << "Goodbye.\n"; return; }
+        else std::cout << "  [!] Enter 1-4\n";
     }
 }
