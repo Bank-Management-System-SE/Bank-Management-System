@@ -1,6 +1,6 @@
 # Transfer Integrity Verification (BMS-SR-005, TC-SEC-05)
 
-Issue: #34   Owner: Pearl2Nyx   Date: __________
+Issue: #34   Owner: Pearl2Nyx   Date: 2026-11-09
 
 ## Requirement
 A transfer must never leave a one-sided balance update. If it is interrupted, either both accounts change or neither does.
@@ -10,25 +10,32 @@ transfer() changes both balances in memory and then writes BOTH in a single save
 
 ## Test 1 - failed save (unit test with test hook)
 Command: `make test` (tests/test_transfer.cpp, testFailNextSave)
-Result: ___ / ___ passed. TC-SEC-05 checks: failed save reported, in-memory balances unchanged, stored balances unchanged, no ledger rows written, next transfer works.
+Result: 5 / 5 passed. TC-SEC-05 failed-save assertions passed.The overall make test command still reports a separate TC-AUTH-02Core test failure, unrelated to transfer integrity.
 
 ## Test 2 - process killed during transfers (scripts/kill_test.sh)
 Environment: OS Linux LAPTOP-DO5V20JO 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC , g++ 13.3.0 , commit cf0ba434cb25b0fd3b8eb688b471c5df751ab5d7
 scripts/kill_test.sh builds tests/kill_harness.cpp against the real source files, creates two accounts (1000 + 500), then kills the program at random moments (20-320 ms) while it performs thousands of transfers of 0.01. After every kill the total of all balances must be exactly 1500.00 and accounts.dat must be readable.
 
-Run 1 output (paste):
+Run 1 output:
 Runs killed mid-transfer              : 40
 Runs with inconsistent balances       : 0   (must be 0)
 Transfer ledger rows written          : 63372
 Accounts whose last ledger row lagged : 64   (known limitation, see DEVIATIONS.md)
 RESULT: PASS - no one-sided or corrupted balance after any kill
 
-Run 2 output (paste):
+Run 2 output:
 Runs killed mid-transfer              : 40
 Runs with inconsistent balances       : 0   (must be 0)
 Transfer ledger rows written          : 67249
 Accounts whose last ledger row lagged : 67   (known limitation, see DEVIATIONS.md)
 RESULT: PASS - no one-sided or corrupted balance after any kill
+
+Run 3 — Updated cleanup-safe script
+Processes killed: 40
+Inconsistent balances: 0
+Transfer ledger rows written: 74752
+Accounts whose last ledger row lagged: 58
+RESULT: PASS
 
 ## Result
 - Total processes killed: 80 (40 per run)
