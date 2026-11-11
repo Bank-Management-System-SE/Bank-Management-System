@@ -51,7 +51,7 @@ done
           | awk '/^File / || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
         echo
         echo "## Branch-by-branch details"
-        echo "Format: source file : line : branch outcome : coverage status"
+        echo "Format: source file : line : branch outcome/taken count : coverage status"
         for gcov_file in "${OUT}"/*.gcov; do
             [ -f "${gcov_file}" ] || continue
             awk '
@@ -64,7 +64,7 @@ done
                 /^[[:space:]]*branch[[:space:]]+[0-9]+[[:space:]]+taken/ {
                     outcome=$0
                     if (source !~ /\/(src|include)\//) next
-                    status=(outcome ~ /taken[[:space:]]+[1-9][0-9]*([.][0-9]+)?%/) ? "Covered" : "Not covered"
+                    status=(outcome ~ /taken[[:space:]]+0([[:space:]]|%)/ || outcome ~ /taken[[:space:]]+-/) ? "Not covered" : "Covered"
                     printf "%s:%s: %s : %s\n", source, current_line, outcome, status
                 }
             ' "${gcov_file}"
