@@ -38,15 +38,19 @@ Accounts whose last ledger row lagged: 58
 RESULT: PASS
 
 ## Result
-- Total processes killed: 80 (40 per run)
-- Runs with inconsistent balances: 0 (required: 0)
-- Transfer ledger rows written: 130621
-- Accounts whose last ledger row lagged: 131 across both runs (informational)
-- TC-SEC-05: PASS (both interruption test runs reported PASS)
 
-Compiler warning: src/storage.cpp:84 reported a possible snprintf transaction ID truncation. This warning did not prevent either test run from completing.
+Across all three interruption test runs:
+
+- Total processes killed: 120 (40 per run)
+- Runs with inconsistent balances: 0 (required: 0)
+- Transfer ledger rows written: 205373
+- Accounts whose last ledger row lagged: 189 across all three runs (informational)
+- TC-SEC-05: PASS for the balance-consistency interruption checks.
+
+Compiler warning: src/storage.cpp:84 reported a possible snprintf transaction ID truncation. This warning did not prevent the interruption tests from completing.
 
 ## Conclusion
-Both interruption test runs passed. Across 80 interrupted processes, no inconsistent account balances or malformed account records were detected.
 
-The transaction ledger showed lag in some checks because account balances are persisted before ledger entries are appended. This remains a documented limitation and should not be interpreted as full transaction-ledger atomicity.
+All three interruption test runs passed the balance-consistency checks. Across 120 interrupted processes, no inconsistent account balances or malformed account records were detected.
+
+The transaction ledger showed lag in some checks because account balances are persisted before ledger entries are appended. This remains a documented limitation and must not be interpreted as full transaction-ledger atomicity.

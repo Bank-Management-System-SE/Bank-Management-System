@@ -1,0 +1,133 @@
+=== Running test_admin ===
+PASS  TC-AUTH-04 admin record created
+PASS  TC-AUTH-04 valid admin login
+PASS  TC-AUTH-04 wrong password rejected
+PASS  TC-AUTH-04 unknown admin rejected
+PASS  TC-AUTH-04 customer credentials rejected as admin
+PASS  TC-AUTH-04 admin record survives a second call
+PASS  TC-ADM-01 search finds the account
+PASS  TC-ADM-01 search reports unknown account
+PASS  TC-ADM-02 deactivate succeeds
+PASS  TC-ADM-02 customer login now refused
+PASS  TC-ADM-02 deposit refused
+PASS  TC-ADM-02 withdrawal refused
+PASS  TC-ADM-02 balance unchanged
+PASS  TC-ADM-02 deactivation persists
+PASS  TC-ADM-02 unknown account
+PASS  TC-ADM-02 deactivating twice is harmless
+
+16/16 passed
+
+=== Running test_core ===
+PASS  SHA256 known vector (abc)
+PASS  TC-ACC-01 create account with valid data
+PASS  TC-ACC-01 unique account numbers
+PASS  BMS-F-006 missing name rejected
+PASS  TC-ACC-02 missing contact rejected
+PASS  TC-ACC-02 invalid contact rejected
+PASS  TC-ACC-02 invalid PIN rejected
+PASS  TC-ACC-02 no account created on invalid data
+PASS  BMS-F-005 zero initial deposit allowed
+PASS  TC-ACC-03 account details available
+PASS  TC-AUTH-01 valid login
+PASS  TC-AUTH-02 wrong PIN rejected, no session
+PASS  TC-AUTH-02 unknown account rejected, no session
+PASS  TC-SEC-01 failed login yields no protected access
+PASS  TC-AUTH-03 attempt 1
+PASS  TC-AUTH-03 attempt 2
+PASS  TC-AUTH-03 attempt 3 blocks account
+PASS  TC-AUTH-03 correct PIN refused while blocked
+PASS  STP 5.1 block survives restart
+PASS  TC-AUTH-03 block is temporary
+PASS  TC-DEP-01 zero deposit rejected
+PASS  TC-DEP-01 negative deposit rejected
+PASS  TC-DEP-02 balance increases by exact amount
+PASS  TC-DEP-03 record has id, account, type, amount, date/time
+PASS  TC-WD-01 zero withdrawal rejected
+PASS  TC-WD-01 negative withdrawal rejected
+PASS  TC-WD-02 amount above balance rejected, balance unchanged
+PASS  TC-WD-03 balance reduced by exact amount
+PASS  TC-WD-04 withdrawal recorded
+PASS  BMS-F-013 withdrawing exactly the balance is allowed
+PASS  BMS-F-013 no overdraft
+PASS  TC-SEC-04 deposit to inactive account rejected
+PASS  TC-SEC-04 withdrawal from inactive account rejected
+PASS  TC-SEC-04 balance unchanged
+PASS  TC-REL-01 last ledger balance matches account balance
+PASS  TC-DATA-01 data persisted
+PASS  TC-DATA-03 data restored after restart
+PASS  TC-DATA-03 transactions restored (ids continue)
+PASS  BMS-F-019 transaction IDs are unique and increasing
+PASS  TC-DATA-02 corrupt file handled without crashing
+PASS  TC-ROB-01 negative amount
+PASS  TC-ROB-01 alphabetic amount
+PASS  TC-ROB-01 three decimals
+PASS  TC-ROB-01 over-long input
+PASS  TC-ROB-01 empty input
+PASS  TC-ROB-01 valid amount
+PASS  TC-ROB-01 PIN too short
+PASS  TC-ROB-01 PIN letters
+PASS  TC-ROB-01 name with delimiter
+PASS  TC-ROB-01 over-long name
+PASS  TC-SEC-02 no plain-text PIN in accounts file
+PASS  TC-SEC-02 no PIN or hash in audit log
+PASS  TC-SEC-02 no PIN or hash in transaction history
+PASS  Audit log records the block
+
+54/54 passed
+
+=== Running test_history ===
+PASS  TC-HIS-01 account 1 has its 4 transactions
+PASS  TC-HIS-01 newest first
+PASS  TC-HIS-01 fields present
+PASS  TC-SEC-03 history contains only the requested account
+PASS  TC-SEC-03 other customer's rows never returned
+PASS  TC-HIS-01 destination sees TRANSFER_IN
+PASS  TC-HIS-01 unknown account has empty history
+
+7/7 passed
+
+=== Running test_perf ===
+PASS  TC-PERF-01 login: 90th percentile 0.914926 ms (limit 2000 ms)
+PASS  TC-PERF-01 deposit: 90th percentile 0.617217 ms (limit 2000 ms)
+PASS  TC-PERF-01 withdraw: 90th percentile 0.468113 ms (limit 2000 ms)
+PASS  TC-PERF-01 transfer: 90th percentile 0.464586 ms (limit 2000 ms)
+
+=== Running test_profile ===
+PASS  TC-ACC-04 valid update accepted
+PASS  TC-ACC-04 changes visible
+PASS  TC-ACC-04 changes persisted
+PASS  TC-ACC-04 invalid contact rejected
+PASS  TC-ACC-04 invalid name rejected
+PASS  TC-ACC-04 record unchanged after rejection
+PASS  TC-ACC-04 balance, number and PIN untouched
+PASS  TC-ACC-04 unknown account
+
+8/8 passed
+
+=== Running test_transfer ===
+PASS  TC-TR-01 unknown destination rejected
+PASS  TC-TR-01 unknown source rejected
+PASS  TC-TR-01 transfer to own account rejected
+PASS  TC-TR-01 inactive destination rejected
+PASS  TC-TR-01 inactive source rejected
+PASS  TC-TR-01 invalid amount rejected
+PASS  TC-TR-01 balances unchanged after rejections
+PASS  TC-TR-02 insufficient funds rejected
+PASS  TC-TR-02 balances unchanged
+PASS  TC-TR-03 transfer succeeds
+PASS  TC-TR-03 debit and credit exact
+PASS  TC-TR-03 total money unchanged
+PASS  TC-TR-03 persisted
+PASS  TC-TR-04 two ledger rows written
+PASS  TC-TR-04 source row
+PASS  TC-TR-04 destination row
+PASS  TC-TR-04 rows have distinct transaction IDs and a date/time
+PASS  TC-TR-04 audit event present
+PASS  TC-SEC-05 failed save reported
+PASS  TC-SEC-05 in-memory balances unchanged
+PASS  TC-SEC-05 stored balances unchanged
+PASS  TC-SEC-05 no ledger rows written
+PASS  TC-SEC-05 next transfer works again
+
+23/23 passed
