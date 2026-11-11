@@ -46,7 +46,7 @@ done
     echo "Tests failed: ${failed}"
     echo
     echo "## Per-file coverage"
-    if compgen -G "${OUT}/*.gcda" > /dev/null; then
+if compgen -G "${OUT}/*.gcda" > /dev/null; then
         (cd "${OUT}" && "${GCOV}" -b -c -l -p *.gcno 2>/dev/null) \
           | awk '/^File / || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
         echo
@@ -64,7 +64,7 @@ done
                 /^[[:space:]]*branch[[:space:]]+[0-9]+[[:space:]]+taken/ {
                     outcome=$0
                     if (source !~ /\/(src|include)\//) next
-                    status=(outcome ~ /taken[[:space:]]+0([[:space:]]|%)/ || outcome ~ /taken[[:space:]]+-/) ? "Not covered" : "Covered"
+                    status=(outcome ~ /taken[[:space:]]+0/ || outcome ~ /taken[[:space:]]+-/) ? "Not covered" : "Covered"
                     printf "%s:%s: %s : %s\n", source, current_line, outcome, status
                 }
             ' "${gcov_file}"
