@@ -47,8 +47,28 @@ done
     echo
     echo "## Per-file coverage"
     if compgen -G "${OUT}/*.gcda" > /dev/null; then
-        (cd "${OUT}" && "${GCOV}" -b -c *.gcno 2>/dev/null) \
+        (cd "${OUT}" && "${GCOV}" -b -c -l -p *.gcno 2>/dev/null) \
           | awk '/^File / || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
+        echo
+        echo "## Branch-by-branch details"
+        echo "Format: source file : line : branch outcome : coverage status"
+        for gcov_file in "${OUT}"/*.gcov; do
+            [ -f "${gcov_file}" ] || continue
+            awk '
+                /^[[:space:]-]+:[[:space:]]*0:Source:/ {
+                    sub(/^.*:Source:/, ""); source=$0
+                }
+                /^[[:space:]]*(#####[^:]*|[0-9]+):[[:space:]]*[0-9]+:/ {
+                    split($0, fields, ":"); current_line=fields[2]
+                }
+                /^[[:space:]]*branch[[:space:]]+[0-9]+[[:space:]]+taken/ {
+                    outcome=$0
+                    if (source !~ /\/(src|include)\//) next
+                    status=(outcome ~ /taken[[:space:]]+[1-9][0-9]*([.][0-9]+)?%/) ? "Covered" : "Not covered"
+                    printf "%s:%s: %s : %s\n", source, current_line, outcome, status
+                }
+            ' "${gcov_file}"
+        done
     else
         echo "No .gcda files were produced; compilation or execution was unavailable."
     fi
