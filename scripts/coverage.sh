@@ -48,7 +48,7 @@ done
     echo "## Per-file coverage"
     if compgen -G "${OUT}/*.gcda" > /dev/null; then
         (cd "${OUT}" && "${GCOV}" -b -c *.gcno 2>/dev/null) \
-          | awk '/File .src\// || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
+          | awk '/^File / || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
     else
         echo "No .gcda files were produced; compilation or execution was unavailable."
     fi
