@@ -46,8 +46,8 @@ done
     echo "Tests failed: ${failed}"
     echo
     echo "## Per-file coverage"
-    if compgen -G "${ROOT}/*.gcda" > /dev/null; then
-        (cd "${ROOT}" && "${GCOV}" -b -c src/*.cpp 2>/dev/null) \
+    if compgen -G "${OUT}/*.gcda" > /dev/null; then
+        (cd "${OUT}" && "${GCOV}" -b -c *.gcno 2>/dev/null) \
           | awk '/File .src\// || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
     else
         echo "No .gcda files were produced; compilation or execution was unavailable."
