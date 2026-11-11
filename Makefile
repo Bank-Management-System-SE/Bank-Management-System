@@ -4,6 +4,7 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude -g -fsanitize=address,undefined
 LIBSRC   = $(filter-out src/main.cpp, $(wildcard src/*.cpp))
 TESTS    = $(wildcard tests/test_*.cpp)
 
+# Build the application
 bms: $(wildcard src/*.cpp)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
@@ -27,7 +28,10 @@ test:
 	done; \
 	if [ $$failed -ne 0 ]; then exit 1; fi
 
+# Clean generated files
 clean:
-	rm -rf bms test_* *.dSYM testdata data/*.tmp
+	rm -rf bms test_* test_runner *.dSYM testdata testdata_transfer testdata_bad data/*.tmp
 
 .PHONY: test clean
+
+
