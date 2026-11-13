@@ -1,5 +1,6 @@
 name: build-and-test
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -13,3 +14,10 @@ jobs:
         run: make bms
       - name: Run unit tests
         run: make test
+      - name: Generate branch coverage report
+        run: bash scripts/coverage.sh || true
+      - name: Upload branch coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-coverage-report
+          path: coverage/branch-coverage.txt

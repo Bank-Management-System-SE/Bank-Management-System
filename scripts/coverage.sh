@@ -46,9 +46,29 @@ done
     echo "Tests failed: ${failed}"
     echo
     echo "## Per-file coverage"
-    if compgen -G "${ROOT}/*.gcda" > /dev/null; then
-        (cd "${ROOT}" && "${GCOV}" -b -c src/*.cpp 2>/dev/null) \
-          | awk '/File .src\// || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
+if compgen -G "${OUT}/*.gcda" > /dev/null; then
+        (cd "${OUT}" && "${GCOV}" -b -c -l -p *.gcno 2>/dev/null) \
+          | awk '/^File / || /Lines executed:/ || /Branches executed:/ || /Taken at least once:/ {print}'
+        echo
+        echo "## Branch-by-branch details"
+        echo "Format: source file : line : branch outcome/taken count : coverage status"
+        for gcov_file in "${OUT}"/*.gcov; do
+            [ -f "${gcov_file}" ] || continue
+            awk '
+                /^[[:space:]-]+:[[:space:]]*0:Source:/ {
+                    sub(/^.*:Source:/, ""); source=$0
+                }
+                /^[[:space:]]*(#####[^:]*|[0-9]+):[[:space:]]*[0-9]+:/ {
+                    split($0, fields, ":"); current_line=fields[2]
+                }
+                /^[[:space:]]*branch[[:space:]]+[0-9]+[[:space:]]+taken/ {
+                    outcome=$0
+                    if (source !~ /\/(src|include)\//) next
+                    status=(outcome ~ /taken[[:space:]]+0/ || outcome ~ /taken[[:space:]]+-/) ? "Not covered" : "Covered"
+                    printf "%s:%s: %s : %s\n", source, current_line, outcome, status
+                }
+            ' "${gcov_file}"
+        done
     else
         echo "No .gcda files were produced; compilation or execution was unavailable."
     fi
