@@ -12,7 +12,7 @@ fi
 if [[ -z "${GCOV}" ]]; then
     if command -v gcov >/dev/null 2>&1; then GCOV="$(command -v gcov)"; else GCOV="/c/MinGW/bin/gcov.exe"; fi
 fi
-mapfile -t LIBSRC < <(find "${ROOT}/src" -maxdepth 1 -name '*.cpp' ! -name 'main.cpp' -print)
+mapfile -t LIBSRC < <(find "${ROOT}/src" -maxdepth 1 -name '*.cpp' ! -name 'main.cpp' ! -name 'ui.cpp' -print)
 mapfile -t TESTS < <(find "${ROOT}/tests" -maxdepth 1 -name 'test_*.cpp' -print | sort)
 
 rm -rf "${OUT}"

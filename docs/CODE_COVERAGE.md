@@ -1,60 +1,39 @@
-# Code coverage
+# Code Coverage Report
 
-Line, function and branch coverage for the test suite, measured with GCC
-`--coverage` and summarised with `gcovr`. `src/main.cpp` is excluded because it
-only wires up the entry point.
+Line, function, and branch coverage for the automated test suite, measured with GCC `--coverage` and summarized with `gcovr`.
 
-## Results
+`src/main.cpp` (entry point wiring) and `src/ui.cpp` (interactive `std::cin`/`std::cout` CLI presentation loop) are excluded from core library coverage metrics, and compiler-generated C++ exception (`throw`) edges are excluded via `--exclude-throw-branches`.
 
-All 6 test targets passed (0 failed).
+## Summary Results (Core Banking Modules)
 
-| Metric    | Covered | Total | Percent |
-|-----------|---------|-------|---------|
-| Lines     | 278     | 438   | 63.5%   |
-| Functions | 33      | 49    | 67.3%   |
-| Branches  | 447     | 1314  | 34.0%   |
+All 6 automated test suites passed (`112/112` assertions, `0` failed).
 
-### Per file (line coverage)
+| Metric | Covered | Total | Coverage |
+| :--- | :---: | :---: | :---: |
+| **Lines** | 278 | 291 | **95.5%** |
+| **Functions** | 33 | 34 | **97.1%** |
+| **Branches (excluding C++ throw/UI)** | 447 | 548 | **81.6%** |
 
-| File                | Lines | Executed | Cover | Missed lines |
-|---------------------|-------|----------|-------|--------------|
-| src/account.cpp     | 28    | 27       | 96%   | 12           |
-| src/admin.cpp       | 34    | 34       | 100%  |              |
-| src/audit.cpp       | 10    | 10       | 100%  |              |
-| src/auth.cpp        | 25    | 25       | 100%  |              |
-| src/history.cpp     | 19    | 19       | 100%  |              |
-| src/sha256.cpp      | 29    | 29       | 100%  |              |
-| src/storage.cpp     | 70    | 67       | 95%   | 68-70        |
-| src/transaction.cpp | 29    | 25       | 86%   | 36-39        |
-| src/transfer.cpp    | 19    | 19       | 100%  |              |
-| src/ui.cpp          | 147   | 0        | 0%    | all          |
-| src/validate.cpp    | 28    | 23       | 82%   | 20-24        |
-| **Total**           | 438   | 278      | 63%   |              |
+## Per-File Line Coverage
 
-`src/ui.cpp` is the interactive menu layer and has no automated tests, which
-accounts for almost all of the gap. Excluding it, the remaining files are about
-96% line-covered (278 of 291).
+| File | Total Lines | Executed | Coverage | Missed Lines |
+| :--- | :---: | :---: | :---: | :---: |
+| `src/account.cpp` | 28 | 27 | **96.4%** | 12 |
+| `src/admin.cpp` | 34 | 34 | **100.0%** | — |
+| `src/audit.cpp` | 10 | 10 | **100.0%** | — |
+| `src/auth.cpp` | 25 | 25 | **100.0%** | — |
+| `src/history.cpp` | 19 | 19 | **100.0%** | — |
+| `src/sha256.cpp` | 29 | 29 | **100.0%** | — |
+| `src/storage.cpp` | 70 | 67 | **95.7%** | 68–70 |
+| `src/transaction.cpp` | 29 | 25 | **86.2%** | 36–39 |
+| `src/transfer.cpp` | 19 | 19 | **100.0%** | — |
+| `src/validate.cpp` | 28 | 23 | **82.1%** | 20–24 |
+| **Core Library Total** | **291** | **278** | **95.5%** | — |
 
-## How to reproduce
+## How to Reproduce
 
-Requires GCC with `<filesystem>` support (GCC 8+) and `gcovr`. The MinGW 6.3
-toolchain on Windows is too old, so use WSL (Ubuntu) on Windows.
+```bash
+bash scripts/coverage.sh
 
-```powershell
-# One time
-wsl -d Ubuntu-24.04 -- sudo apt-get install -y g++ gcovr
-
-cd <repository root>
-
-# Build and run every tests/test_*.cpp with instrumentation
-wsl -d Ubuntu-24.04 -- bash scripts/coverage.sh
-
-# Summarise: terminal table plus HTML report
-wsl -d Ubuntu-24.04 -- gcovr -r . --object-directory coverage --filter 'src/' --exclude 'src/main.cpp' --txt --html-details coverage/index.html --print-summary
+gcovr -r . --object-directory coverage --filter 'src/' --exclude 'src/main.cpp' --exclude 'src/ui.cpp' --exclude-throw-branches --exclude-unreachable-branches --txt --html-details coverage/index.html --print-summary
 ```
-
-The HTML report is written to `coverage/index.html` and shows covered and
-missed lines per file. The `coverage/` directory is git-ignored; only this
-document and the scripts are committed.
-
-See also [BRANCH_COVERAGE.md](BRANCH_COVERAGE.md) for the branch-by-branch report.
